@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 
 const randomColor = () => {
@@ -45,6 +45,8 @@ function App() {
       attachments,
       color: randomColor(),
       createdAt: new Date().toISOString(),
+      likes: 0,
+      dislikes: 0,
     };
     setNotes((prev) => [note, ...prev]);
     setText('');
@@ -72,16 +74,71 @@ function App() {
       setSearchResults([]);
       return;
     }
-    const query = search.trim().toUpperCase();
-    setSearchResults(notes.filter((note) => note.id.toUpperCase().includes(query)));
+    const query = search.trim().toLowerCase();
+    setSearchResults(
+      notes.filter(
+        (note) =>
+          note.id.toLowerCase().includes(query) ||
+          note.text.toLowerCase().includes(query) ||
+          note.attachments.some((attachment) => attachment.name.toLowerCase().includes(query))
+      )
+    );
   };
 
   const displayedNotes = searchResults.length ? searchResults : notes;
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('stickyNotes');
+    if (saved) {
+      setNotes(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('stickyNotes', JSON.stringify(notes));
+  }, [notes]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const noteParam = params.get('note');
+    if (noteParam && notes.length > 0) {
+      const matched = notes.filter((note) => note.id === noteParam);
+      if (matched.length > 0) {
+        setSearchResults(matched);
+        setSearch(noteParam);
+      }
+    }
+  }, [notes]);
 
   const noteCountText = useMemo(() => {
     if (displayedNotes.length === 0) return 'No notes yet.';
     return `${displayedNotes.length} note${displayedNotes.length === 1 ? '' : 's'}`;
   }, [displayedNotes.length]);
+
+  const copyNoteLink = (noteId) => {
+    const url = `${window.location.origin}${window.location.pathname}?note=${noteId}`;
+    navigator.clipboard.writeText(url);
+  };
+
+  const sendEmail = (noteId) => {
+    const subject = encodeURIComponent('Check out this sticky note');
+    const body = encodeURIComponent(`View this note: ${window.location.origin}${window.location.pathname}?note=${noteId}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const updateReaction = (noteId, type) => {
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId
+          ? {
+              ...note,
+              likes: type === 'like' ? note.likes + 1 : note.likes,
+              dislikes: type === 'dislike' ? note.dislikes + 1 : note.dislikes,
+            }
+          : note
+      )
+    );
+  };
 
   return (
     <div className="app-shell">
@@ -176,6 +233,20 @@ function App() {
                 <div className="note-header">
                   <strong>{note.id}</strong>
                   <span>{new Date(note.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="note-actions">
+                  <button type="button" onClick={() => updateReaction(note.id, 'like')}>
+                    👍 {note.likes}
+                  </button>
+                  <button type="button" onClick={() => updateReaction(note.id, 'dislike')}>
+                    👎 {note.dislikes}
+                  </button>
+                  <button type="button" onClick={() => copyNoteLink(note.id)}>
+                    🔗 Copy link
+                  </button>
+                  <button type="button" onClick={() => sendEmail(note.id)}>
+                    ✉️ Email
+                  </button>
                 </div>
                 {note.text && <p>{note.text}</p>}
                 {note.attachments.length > 0 && (
