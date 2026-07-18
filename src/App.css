@@ -259,6 +259,168 @@ textarea:focus {
   align-items: center;
 }
 
+.admin-shell {
+  padding-bottom: 0;
+}
+
+.admin-login,
+.admin-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.admin-login-widget {
+  display: grid;
+  gap: 10px;
+  justify-items: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+.admin-login-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.admin-login-input {
+  min-width: 140px;
+  max-width: 180px;
+  padding: 10px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.admin-login-button,
+.admin-toggle-button,
+.admin-link {
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-toggle-button {
+  white-space: nowrap;
+}
+
+.admin-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 24px;
+  padding: 18px 22px;
+  margin-bottom: 22px;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+}
+
+.admin-dashboard {
+  display: grid;
+  gap: 16px;
+  margin-top: 0;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.admin-note-row {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.admin-note-row strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.admin-error {
+  color: #b91c1c;
+  background: rgba(254, 205, 211, 0.9);
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid #fbc8d5;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-actions {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.admin-note-row {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.admin-note-row strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.admin-error {
+  color: #b91c1c;
+  background: rgba(254, 205, 211, 0.9);
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid #fbc8d5;
+}
+
+.admin-link {
+  display: inline-flex;
+  margin-top: 18px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.admin-link:hover {
+  background: #0f172a;
+}
+
 .search-panel input {
   width: 100%;
   min-width: 220px;
@@ -315,6 +477,68 @@ textarea:focus {
 .note-actions button:hover {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 1);
+}
+
+.admin-shell {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 32px 100px rgba(15, 23, 42, 0.14);
+  margin-bottom: 24px;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.admin-note-row {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 16px;
+  background: #f8fafc;
+}
+
+.admin-note-row strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.admin-login {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.admin-login input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  margin-bottom: 16px;
+  background: #fff;
+}
+
+.admin-login button {
+  width: 100%;
+}
+
+.admin-error {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 
 .note-card::after {
