@@ -52,6 +52,10 @@ function App() {
     try {
       const response = await fetch('/api/notes');
       if (!response.ok) throw new Error('Unable to fetch notes');
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Backend response is not JSON');
+      }
       const json = await response.json();
       setNotes(json.notes);
       window.localStorage.setItem('stickyNotes', JSON.stringify(json.notes));
@@ -61,7 +65,7 @@ function App() {
       if (saved) {
         setNotes(JSON.parse(saved));
       }
-      setServerError('Backend unreachable. Notes are stored locally until the server is available.');
+      setServerError('Backend unavailable. Notes are stored locally until the API server is available.');
     }
   };
 
@@ -157,9 +161,14 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: adminUsername, password: adminPassword }),
       });
-      if (!response.ok) {
-        const body = await response.json();
-        throw new Error(body.error || 'Login failed');
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || !contentType.includes('application/json')) {
+        let message = 'Login failed. The backend may be unavailable.';
+        if (contentType.includes('application/json')) {
+          const body = await response.json();
+          message = body.error || message;
+        }
+        throw new Error(message);
       }
       const json = await response.json();
       setAdminToken(json.token);
@@ -168,7 +177,11 @@ function App() {
       setAdminError('');
       setIsAdminPanelOpen(false);
     } catch (error) {
-      setAdminError(error.message || 'Invalid credentials');
+      if (error.message && error.message.includes('Unexpected token')) {
+        setAdminError('Backend unreachable. Admin login requires the server to be running.');
+      } else {
+        setAdminError(error.message || 'Invalid credentials');
+      }
     }
   };
 
