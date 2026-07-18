@@ -17,7 +17,7 @@ A simple React website for anonymous sticky notes with text, image, video, and a
 
 ## Admin interface
 
-- Visit `/admin` or `/#/admin` to open the admin login page.
+- Visit `/#/admin` to open the admin login page when the backend server is running.
 - The default admin credentials are:
   - username: `admin`
   - password: `Mandarini55`
@@ -25,6 +25,8 @@ A simple React website for anonymous sticky notes with text, image, video, and a
 - After logging in, the admin can view all notes, filter reported notes, and delete any note.
 
 ## Notes
+
+- The deployed GitHub Pages site is static and does not include the backend API, so admin login will only work when the Express server is running locally.
 
 - Notes are stored on the server in `data/notes.json` when the API server is running.
 - If the backend is not available, the frontend will keep notes in browser storage for the local user.

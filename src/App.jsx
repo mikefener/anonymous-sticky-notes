@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 
 const randomColor = () => {
@@ -45,11 +45,12 @@ function App() {
     Symbols: ['🔥', '💡', '✨', '💬', '🎉', '❤️', '👍', '🌟', '🚀', '⚡'],
     Objects: ['📌', '📎', '📅', '🖊️', '🧩', '🎁', '📝', '📦', '🔔', '💼'],
     Nature: ['🌿', '🌸', '🌞', '🌈', '🍃', '🌺', '🌊', '🍂', '🍁', '🌻'],
+    'Hand signs': ['✋', '🤚', '👋', '👍', '👎', '✌️', '🤞', '🤟', '👌', '🤙'],
   };
 
   const categoryKeys = Object.keys(emojiCategories);
   const [selectedCategory, setSelectedCategory] = useState(categoryKeys[0]);
-  const [selectedEmoji, setSelectedEmoji] = useState(emojiCategories[categoryKeys[0]][0]);
+  const textAreaRef = useRef(null);
 
   const getAuthHeaders = () => ({
     Authorization: adminToken ? `Bearer ${adminToken}` : '',
@@ -240,6 +241,26 @@ function App() {
     setSearch('');
     setSearchResults([]);
     await persistNote(note);
+  };
+
+  const insertEmoji = (emoji) => {
+    const textarea = textAreaRef.current;
+    if (!textarea) {
+      setText((prev) => `${prev}${emoji}`);
+      return;
+    }
+
+    const { selectionStart, selectionEnd } = textarea;
+    const before = text.slice(0, selectionStart);
+    const after = text.slice(selectionEnd);
+    const nextText = `${before}${emoji}${after}`;
+    setText(nextText);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const pos = selectionStart + emoji.length;
+      textarea.setSelectionRange(pos, pos);
+    });
   };
 
   const handleFiles = async (event) => {
@@ -481,6 +502,7 @@ function App() {
             <div className="form-group">
               <label>Note text</label>
               <textarea
+                ref={textAreaRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Write your note here..."
@@ -488,29 +510,27 @@ function App() {
             </div>
 
             <div className="emoji-selector">
-              <label>Choose emoji</label>
+              <label>Insert emoji into note</label>
               <div className="emoji-selector-row">
-                <select value={selectedCategory} onChange={(e) => {
-                  const category = e.target.value;
-                  setSelectedCategory(category);
-                  setSelectedEmoji(emojiCategories[category][0]);
-                }}>
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                   {categoryKeys.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
                   ))}
                 </select>
-                <select value={selectedEmoji} onChange={(e) => setSelectedEmoji(e.target.value)}>
+                <div className="emoji-buttons">
                   {emojiCategories[selectedCategory].map((emoji) => (
-                    <option key={emoji} value={emoji}>
+                    <button
+                      key={emoji}
+                      type="button"
+                      className="emoji-button"
+                      onClick={() => insertEmoji(emoji)}
+                    >
                       {emoji}
-                    </option>
+                    </button>
                   ))}
-                </select>
-                <button type="button" onClick={() => addEmoji(selectedEmoji)}>
-                  Add emoji
-                </button>
+                </div>
               </div>
             </div>
 
