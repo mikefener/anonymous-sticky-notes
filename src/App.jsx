@@ -204,13 +204,16 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: adminUsername, password: adminPassword }),
       });
-      const contentType = response.headers.get('content-type') || '';
-      if (!response.ok || !contentType.includes('application/json')) {
-        if (response.status === 401) {
-          throw new Error('Invalid credentials');
-        }
+
+      if (response.status === 401) {
+        setAdminError('Invalid credentials');
+        return;
+      }
+
+      if (!response.ok) {
         throw new Error('Backend unreachable');
       }
+
       const json = await response.json();
       setAdminToken(json.token);
       localStorage.setItem('adminToken', json.token);
@@ -220,8 +223,8 @@ function App() {
     } catch (error) {
       const fallbackAllowed =
         adminUsername === DEFAULT_ADMIN_USER &&
-        adminPassword === DEFAULT_ADMIN_PASSWORD &&
-        (error.message.includes('Backend unreachable') || error.message.includes('Failed to fetch') || error.message.includes('404') || error.message.includes('405'));
+        adminPassword === DEFAULT_ADMIN_PASSWORD;
+
       if (fallbackAllowed) {
         setAdminToken(LOCAL_ADMIN_TOKEN);
         localStorage.setItem('adminToken', LOCAL_ADMIN_TOKEN);
