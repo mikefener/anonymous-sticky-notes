@@ -31,7 +31,7 @@ function App() {
   const [adminNotes, setAdminNotes] = useState([]);
   const [showReported, setShowReported] = useState(false);
   const [adminLoading, setAdminLoading] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(!!localStorage.getItem('adminToken'));
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
   const emojiCategories = {
     Smileys: ['😀', '😄', '😊', '😂', '😍', '😎', '🤩', '🥳', '🤗', '😇'],
@@ -166,7 +166,7 @@ function App() {
       localStorage.setItem('adminToken', json.token);
       setAdminPassword('');
       setAdminError('');
-      setIsAdminPanelOpen(true);
+      setIsAdminPanelOpen(false);
     } catch (error) {
       setAdminError(error.message || 'Invalid credentials');
     }
