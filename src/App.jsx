@@ -6,6 +6,11 @@ const randomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
+const isAdminRoute = () => {
+  const hash = window.location.hash || '';
+  return hash.startsWith('#/admin') || window.location.pathname.endsWith('/admin');
+};
+
 const generateId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -31,7 +36,9 @@ function App() {
   const [adminNotes, setAdminNotes] = useState([]);
   const [showReported, setShowReported] = useState(false);
   const [adminLoading, setAdminLoading] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [route, setRoute] = useState(isAdminRoute() ? 'admin' : 'app');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminSearchResults, setAdminSearchResults] = useState([]);
 
   const emojiCategories = {
     Smileys: ['😀', '😄', '😊', '😂', '😍', '😎', '🤩', '🥳', '🤗', '😇'],
@@ -145,12 +152,20 @@ function App() {
     }
   };
 
-  const handleAdminToggle = () => {
-    setIsAdminPanelOpen((prev) => !prev);
+  const navigateToAdmin = () => {
+    if (!window.location.hash.startsWith('#/admin')) {
+      window.location.hash = '#/admin';
+    }
+    setRoute('admin');
   };
 
-  const handleAdminClose = () => {
-    setIsAdminPanelOpen(false);
+  const navigateToApp = () => {
+    if (window.location.hash) {
+      window.location.hash = '#/';
+    } else {
+      window.history.pushState({}, '', '/');
+    }
+    setRoute('app');
   };
 
   const handleAdminLogin = async () => {
@@ -175,7 +190,7 @@ function App() {
       localStorage.setItem('adminToken', json.token);
       setAdminPassword('');
       setAdminError('');
-      setIsAdminPanelOpen(false);
+      navigateToAdmin();
     } catch (error) {
       if (error.message && error.message.includes('Unexpected token')) {
         setAdminError('Backend unreachable. Admin login requires the server to be running.');
@@ -186,14 +201,23 @@ function App() {
   };
 
   useEffect(() => {
-    fetchApiNotes();
+    const handleLocationChange = () => setRoute(isAdminRoute() ? 'admin' : 'app');
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
 
   useEffect(() => {
-    if (adminToken) {
+    if (route === 'app') {
+      fetchApiNotes();
+    }
+    if (route === 'admin' && adminToken) {
       fetchAdminNotes();
     }
-  }, [adminToken, showReported]);
+  }, [route, adminToken, showReported]);
 
   const handleAddNote = async () => {
     if (!text.trim() && attachments.length === 0) {
@@ -320,22 +344,43 @@ function App() {
         <button type="button" className="admin-login-button" onClick={handleAdminLogin}>
           Login
         </button>
-        <button type="button" className="admin-login-button" onClick={handleAdminClose}>
-          Close
+        <button type="button" className="admin-login-button" onClick={navigateToApp}>
+          Back
         </button>
       </div>
       {adminError && <div className="admin-error">{adminError}</div>}
     </div>
   );
 
+  const handleAdminSearch = () => {
+    const query = adminSearch.trim().toLowerCase();
+    if (!query) {
+      setAdminSearchResults([]);
+      return;
+    }
+    setAdminSearchResults(
+      adminNotes.filter(
+        (note) =>
+          note.id.toLowerCase().includes(query) ||
+          note.text.toLowerCase().includes(query) ||
+          note.attachments.some((attachment) => attachment.name.toLowerCase().includes(query))
+      )
+    );
+  };
+
+  const displayedAdminNotes = adminSearchResults.length ? adminSearchResults : adminNotes;
+
   const adminDashboard = (
     <div className="admin-dashboard">
-      <div className="admin-actions">
+      <div className="admin-actions admin-dashboard-header">
         <button type="button" onClick={() => setShowReported(false)}>
           View all notes
         </button>
         <button type="button" onClick={() => setShowReported(true)}>
           View reported notes
+        </button>
+        <button type="button" onClick={navigateToApp}>
+          Back to app
         </button>
         <button
           type="button"
@@ -343,9 +388,23 @@ function App() {
             localStorage.removeItem('adminToken');
             setAdminToken('');
             setAdminNotes([]);
+            setAdminSearch('');
+            setAdminSearchResults([]);
           }}
         >
           Logout
+        </button>
+      </div>
+
+      <div className="admin-search">
+        <input
+          type="text"
+          value={adminSearch}
+          onChange={(e) => setAdminSearch(e.target.value)}
+          placeholder="Search notes by ID, text, or attachment"
+        />
+        <button type="button" onClick={handleAdminSearch}>
+          Search
         </button>
       </div>
 
@@ -353,8 +412,10 @@ function App() {
 
       {adminLoading ? (
         <p>Loading notes…</p>
+      ) : displayedAdminNotes.length === 0 ? (
+        <p>No notes found.</p>
       ) : (
-        adminNotes.map((note) => (
+        displayedAdminNotes.map((note) => (
           <div key={note.id} className="admin-note-row">
             <strong>{note.id} — {new Date(note.createdAt).toLocaleString()}</strong>
             <p>{note.text || 'No text'}</p>
@@ -370,6 +431,25 @@ function App() {
     </div>
   );
 
+  if (route === 'admin') {
+    return (
+      <div className="app-shell">
+        <header>
+          <div className="header-top">
+            <div>
+              <h1>Admin Page</h1>
+              <p>Search and manage all notes from the dedicated admin page.</p>
+            </div>
+            <button type="button" className="admin-toggle-button" onClick={navigateToApp}>
+              Back to app
+            </button>
+          </div>
+        </header>
+        {adminToken ? adminDashboard : adminLoginWidget}
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header>
@@ -378,17 +458,12 @@ function App() {
             <h1>Anonymous Sticky Notes</h1>
             <p>Tap the big + button to create a note with text, image, video, audio, and emojis.</p>
           </div>
-          <button type="button" className="admin-toggle-button" onClick={handleAdminToggle}>
+          <button type="button" className="admin-toggle-button" onClick={navigateToAdmin}>
             Admin
           </button>
         </div>
       </header>
-      {isAdminPanelOpen && (
-        <div className="admin-panel">
-          {adminToken ? adminDashboard : adminLoginWidget}
-        </div>
-      )}
-      {serverError && <section className="notes-summary"><span>{serverError}</span></section>}
+      {route === 'app' && serverError && <section className="notes-summary"><span>{serverError}</span></section>}
 
       {!showCreate ? (
         <section className="welcome-screen">
